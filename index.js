@@ -28,11 +28,22 @@ async function run() {
 
 
     const advertiesmentCollection=client.db('nextDwelldb').collection('advertisement')
+    const propertiesCollection=client.db('nextDwelldb').collection('properties')
 
     app.get('/advertiesment',async(req,res)=>{
         const result=await advertiesmentCollection.find().toArray();
         res.send(result);
 
+    })
+
+    app.get('/properties',async(req,res)=>{
+      const result=await propertiesCollection.find().toArray();
+      res.send(result)
+    })
+
+    app.get("/propertyDetails/:id",async(req,res)=>{
+      const result=await foodCollection.findOne({_id:new ObjectId(req.params.id)})
+      res.send(result);
     })
 
     // Send a ping to confirm a successful connection
@@ -49,6 +60,7 @@ run().catch(console.dir);
 app.get('/', (req,res)=>{
     res.send('nextdwell server is running')
 })
+
 
 app.listen(port,()=>{
     console.log(`server is running on port : ${port}`)
