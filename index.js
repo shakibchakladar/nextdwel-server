@@ -9,7 +9,7 @@ app.use(cors());
 app.use(express.json());
 
 
-const { MongoClient, ServerApiVersion } = require('mongodb');
+const { MongoClient, ServerApiVersion, ObjectId } = require('mongodb');
 const uri = `mongodb+srv://${process.env.DB_USER}:${process.env.DB_PASS}@cluster0.9ttivus.mongodb.net/?retryWrites=true&w=majority&appName=Cluster0`;
 
 // Create a MongoClient with a MongoClientOptions object to set the Stable API version
@@ -41,10 +41,32 @@ async function run() {
       res.send(result)
     })
 
-    app.get("/propertyDetails/:id",async(req,res)=>{
-      const result=await foodCollection.findOne({_id:new ObjectId(req.params.id)})
-      res.send(result);
+    app.get('/singleProperty/:id', async (req, res) => {
+      try {
+        const id = req.params.id;
+        if (!ObjectId.isValid(id)) {
+          return res.status(400).send({ message: 'Invalid ID format' });
+        }
+        const result = await propertiesCollection.findOne({ _id: new ObjectId(id) });
+        if (result) {
+          res.send(result);
+        } else {
+          res.status(404).send({ message: 'Property not found' });
+        }
+      } catch (error) {
+        console.error('Error retrieving property:', error);
+        res.status(500).send({ message: 'Internal Server Error', error });
+      }
+    });
+
+
+    // save a property data in db
+    app.post('/add-property',async(req,res)=>{
+      const propertyData=req.body
+      const result=await propertiesCollection.insertOne(propertyData)
+      res.send(result)
     })
+   
 
     // Send a ping to confirm a successful connection
     await client.db("admin").command({ ping: 1 });
