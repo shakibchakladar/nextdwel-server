@@ -67,6 +67,23 @@ async function run() {
       res.send(result)
     })
    
+    // get all property for agent 
+    app.get('/my-added/:email', async (req, res) => {
+      const email = req.params.email;
+      // console.log(req.params);
+  
+      const query = { 'agent_email': email };
+    
+      try {
+        const result = await propertiesCollection.find(query).toArray();
+        res.json(result); // Ensure the response is JSON
+      } catch (error) {
+        console.error('Error fetching properties:', error);
+        res.status(400).json({ error: 'Internal Server Error' }); // Respond with JSON in case of an error
+      }
+    });
+    
+    
 
     // Send a ping to confirm a successful connection
     await client.db("admin").command({ ping: 1 });
