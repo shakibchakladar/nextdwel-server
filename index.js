@@ -28,7 +28,7 @@ const client = new MongoClient(uri, {
 async function run() {
   try {
     // Connect the client to the server	(optional starting in v4.7)
-    await client.connect();
+    // await client.connect();
 
     const advertiesmentCollection = client
       .db("nextDwelldb")
@@ -37,6 +37,20 @@ async function run() {
       .db("nextDwelldb")
       .collection("properties");
     const usersCollection = client.db("nextDwelldb").collection("users");
+
+    const wishlistCollection = client.db("nextDwelldb").collection("wishlist");
+
+    // verify admin middleware
+    const verifyAdmin = async (req, res, next) => {
+      console.log("hello");
+      const user = req.user;
+      const query = { email: user?.email };
+      const result = await usersCollection.findOne(query);
+      console.log(result?.role);
+      if (!result || result?.role !== "admin")
+        return res.status(401).send({ message: "forbidden access" });
+      next();
+    };
 
     // auth related api
     // app.post("/jwt", async (req, res) => {
@@ -101,24 +115,24 @@ async function run() {
       res.send(result);
     });
 
-    // get a user info by email from db 
-    app.get('/user/:email',async(req,res)=>{
-      const email=req.params.email;
-      const result=await usersCollection.findOne({email})
-      res.send(result)
-    })
+    // get a user info by email from db
+    app.get("/user/:email", async (req, res) => {
+      const email = req.params.email;
+      const result = await usersCollection.findOne({ email });
+      res.send(result);
+    });
 
     //update a user role
-    app.patch('/users/update/:email', async(req,res)=>{
-      const email=req.params.email
-      const user=req.body
-      const query={email}
-      const updateDoc={
-        $set:{...user,timestamp:Date.now()}
-      }
-      const result=await usersCollection.updateOne(query,updateDoc)
-      res.send(result)
-    })
+    app.patch("/users/update/:email", async (req, res) => {
+      const email = req.params.email;
+      const user = req.body;
+      const query = { email };
+      const updateDoc = {
+        $set: { ...user, timestamp: Date.now() },
+      };
+      const result = await usersCollection.updateOne(query, updateDoc);
+      res.send(result);
+    });
 
     // get all users from db
     app.get("/users", async (req, res) => {
@@ -195,6 +209,38 @@ async function run() {
       res.send(result);
     });
 
+    // save wishlist property in db
+
+    app.post("/add-wishlist", async (req, res) => {
+      const wishlistData = req.body;
+      try {
+        const result = await wishlistCollection.insertOne(wishlistData);
+        res
+          .status(200)
+          .send({
+            message: "Item added to wishlist successfully",
+            data: result,
+          });
+      } catch (error) {
+        console.error("Error adding to wishlist:", error);
+        res.status(500).send({ message: "Failed to add item to wishlist" });
+      }
+    });
+
+    // delete wishlist data 
+    app.delete("/wishlist/:id", async (req, res) => {
+      const id = req.params.id;
+      const query = { _id: new ObjectId(id) };
+      const result = await wishlistCollection.deleteOne(query);
+      res.send(result);
+    });
+
+    // get wishlist data 
+    app.get("/wishlist", async (req, res) => {
+      const result = await wishlistCollection.find().toArray();
+      res.send(result);
+    });
+
     // get all property for agent
     app.get("/my-added/:email", async (req, res) => {
       const email = req.params.email;
@@ -212,7 +258,7 @@ async function run() {
     });
 
     // Send a ping to confirm a successful connection
-    await client.db("admin").command({ ping: 1 });
+    // await client.db("admin").command({ ping: 1 });
     console.log(
       "Pinged your deployment. You successfully connected to MongoDB!"
     );
