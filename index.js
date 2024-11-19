@@ -233,7 +233,6 @@ async function run() {
     // Get wishlist data for a specific user
     app.get("/my-wishlist/:email", async (req, res) => {
       const email = req.params.email;
-      console.log(req.params);
       const query = {
         userEmail: email,
       };
@@ -262,6 +261,31 @@ async function run() {
         res.status(400).json({ error: "Internal Server Error" });
       }
     });
+
+
+
+    // get checkout/offer
+    app.get("/offer/:id", async (req, res) => {
+      try {
+        const id = req.params.id;
+        if (!ObjectId.isValid(id)) {
+          return res.status(400).send({ message: "Invalid ID format" });
+        }
+        const result = await wishlistCollection.findOne({
+          _id: new ObjectId(id),
+        });
+        if (result) {
+          res.send(result);
+        } else {
+          res.status(404).send({ message: "Property not found" });
+        }
+      } catch (error) {
+        console.error("Error retrieving property:", error);
+        res.status(500).send({ message: "Internal Server Error", error });
+      }
+    });
+
+
 
     // Send a ping to confirm a successful connection
     // await client.db("admin").command({ ping: 1 });
