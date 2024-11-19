@@ -212,22 +212,17 @@ async function run() {
     // save wishlist property in db
 
     app.post("/add-wishlist", async (req, res) => {
-      const wishlistData = req.body;
       try {
+        const wishlistData = req.body;
         const result = await wishlistCollection.insertOne(wishlistData);
-        res
-          .status(200)
-          .send({
-            message: "Item added to wishlist successfully",
-            data: result,
-          });
+        res.send(result);
       } catch (error) {
-        console.error("Error adding to wishlist:", error);
-        res.status(500).send({ message: "Failed to add item to wishlist" });
+        console.error("Failed to add to wishlist:", error);
+        res.status(500).send({ error: "Failed to add to wishlist" });
       }
     });
 
-    // delete wishlist data 
+    // delete wishlist data
     app.delete("/wishlist/:id", async (req, res) => {
       const id = req.params.id;
       const query = { _id: new ObjectId(id) };
@@ -235,13 +230,24 @@ async function run() {
       res.send(result);
     });
 
-    // get wishlist data 
-    app.get("/wishlist", async (req, res) => {
-      const result = await wishlistCollection.find().toArray();
-      res.send(result);
+    // Get wishlist data for a specific user
+    app.get("/my-wishlist/:email", async (req, res) => {
+      const email = req.params.email;
+      console.log(req.params);
+      const query = {
+        userEmail: email,
+      };
+
+      try {
+        const result = await wishlistCollection.find(query).toArray();
+        res.json(result);
+      } catch (error) {
+        console.error("Error fetching properties:", error);
+        res.status(400).json({ error: "Internal Server Error" });
+      }
     });
 
-    // get all property for agent
+    // get my added property for agent
     app.get("/my-added/:email", async (req, res) => {
       const email = req.params.email;
       // console.log(req.params);
@@ -250,10 +256,10 @@ async function run() {
 
       try {
         const result = await propertiesCollection.find(query).toArray();
-        res.json(result); // Ensure the response is JSON
+        res.json(result);
       } catch (error) {
         console.error("Error fetching properties:", error);
-        res.status(400).json({ error: "Internal Server Error" }); // Respond with JSON in case of an error
+        res.status(400).json({ error: "Internal Server Error" });
       }
     });
 
