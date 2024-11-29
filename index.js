@@ -37,7 +37,7 @@ async function run() {
       .db("nextDwelldb")
       .collection("properties");
     const usersCollection = client.db("nextDwelldb").collection("users");
-
+    const offeredCollection=client.db("nextDwelldb").collection("offered")
     const wishlistCollection = client.db("nextDwelldb").collection("wishlist");
 
     // verify admin middleware
