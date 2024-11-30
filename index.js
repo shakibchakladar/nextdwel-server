@@ -222,6 +222,18 @@ async function run() {
       }
     });
 
+    // save offered property in db 
+    app.post("/add-offer", async (req, res) => {
+      try {
+        const offeredData = req.body;
+        const result = await offeredCollection.insertOne(offeredData);
+        res.send(result);
+      } catch (error) {
+        console.error("Failed to add to wishlist:", error);
+        res.status(500).send({ error: "Failed to add to wishlist" });
+      }
+    });
+
     // delete wishlist data
     app.delete("/wishlist/:id", async (req, res) => {
       const id = req.params.id;
@@ -264,7 +276,7 @@ async function run() {
 
 
 
-    // get checkout/offer
+    // get checkout/offer from wishlist
     app.get("/offer/:id", async (req, res) => {
       try {
         const id = req.params.id;
@@ -284,6 +296,12 @@ async function run() {
         res.status(500).send({ message: "Internal Server Error", error });
       }
     });
+
+    // get all offered
+    app.get("/all-offered",async(req,res)=>{
+      const result=await offeredCollection.find().toArray()
+      res.send(result)
+    })
 
 
 
