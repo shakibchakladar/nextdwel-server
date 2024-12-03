@@ -37,7 +37,7 @@ async function run() {
       .db("nextDwelldb")
       .collection("properties");
     const usersCollection = client.db("nextDwelldb").collection("users");
-    const offeredCollection=client.db("nextDwelldb").collection("offered")
+    const offeredCollection = client.db("nextDwelldb").collection("offered");
     const wishlistCollection = client.db("nextDwelldb").collection("wishlist");
 
     // verify admin middleware
@@ -222,7 +222,7 @@ async function run() {
       }
     });
 
-    // save offered property in db 
+    // save offered property in db
     app.post("/add-offer", async (req, res) => {
       try {
         const offeredData = req.body;
@@ -274,7 +274,13 @@ async function run() {
       }
     });
 
-
+    // delete bought property data
+    app.delete("/offered/:id", async (req, res) => {
+      const id = req.params.id;
+      const query = { _id: new ObjectId(id) };
+      const result = await offeredCollection.deleteOne(query);
+      res.send(result);
+    });
 
     // get checkout/offer from wishlist
     app.get("/offer/:id", async (req, res) => {
@@ -298,12 +304,10 @@ async function run() {
     });
 
     // get all offered
-    app.get("/all-offered",async(req,res)=>{
-      const result=await offeredCollection.find().toArray()
-      res.send(result)
-    })
-
-
+    app.get("/all-offered", async (req, res) => {
+      const result = await offeredCollection.find().toArray();
+      res.send(result);
+    });
 
     // Send a ping to confirm a successful connection
     // await client.db("admin").command({ ping: 1 });
