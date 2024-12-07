@@ -2,6 +2,7 @@ const express = require("express");
 const cors = require("cors");
 const app = express();
 require("dotenv").config();
+const stripe = require("stripe")(process.env.STRIPE_SECRET_KEY)
 const port = process.env.PORT || 5000;
 
 // middlewar
@@ -39,6 +40,7 @@ async function run() {
     const usersCollection = client.db("nextDwelldb").collection("users");
     const offeredCollection = client.db("nextDwelldb").collection("offered");
     const wishlistCollection = client.db("nextDwelldb").collection("wishlist");
+    const bookingCollection=client.db("nextDwelldb").collection("booking");
 
     // verify admin middleware
     const verifyAdmin = async (req, res, next) => {
@@ -134,6 +136,26 @@ async function run() {
       res.send(result);
     });
 
+    // payment
+    app.post("/create-payment-intent",async(req,res)=>{
+      const price=req.body.price;
+      // console.log(price);
+      const priceInCent=parseFloat(price)*100
+      if(!price || priceInCent<1) return;
+      // genarate client secret
+      const {client_secret}=await stripe.paymentIntents.create({
+        amount:priceInCent,
+        currency: "usd",
+        // In the latest version of the API, specifying the `automatic_payment_methods` parameter is optional because Stripe enables its functionality by default.
+        automatic_payment_methods: {
+          enabled: true,
+        },
+
+      })
+      // send client secret as res
+      res.send({clientSecret: client_secret})
+    })
+
     // get all users from db
     app.get("/users", async (req, res) => {
       const result = await usersCollection.find().toArray();
@@ -206,6 +228,14 @@ async function run() {
         property,
         options
       );
+      res.send(result);
+    });
+
+
+    // save booking info in db 
+    app.post("/booking", async (req, res) => {
+      const bookingData = req.body;
+      const result = await bookingCollection.insertOne(bookingData);
       res.send(result);
     });
 
