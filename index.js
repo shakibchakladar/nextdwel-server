@@ -6,7 +6,12 @@ const stripe = require("stripe")(process.env.STRIPE_SECRET_KEY)
 const port = process.env.PORT || 5000;
 
 // middlewar
-app.use(cors());
+app.use(cors({
+  origin: "https://nextdwell-311e9.web.app",
+  headers: ["Content-Type","Authorization"],
+  credentials: true,
+  optionsSuccessStatus: 200,
+}));
 app.use(express.json());
 
 const {
