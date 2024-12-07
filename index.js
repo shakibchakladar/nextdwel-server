@@ -41,6 +41,7 @@ async function run() {
     const offeredCollection = client.db("nextDwelldb").collection("offered");
     const wishlistCollection = client.db("nextDwelldb").collection("wishlist");
     const bookingCollection=client.db("nextDwelldb").collection("booking");
+    const reviewsCollection=client.db("nextDwelldb").collection("reviews");
 
     // verify admin middleware
     const verifyAdmin = async (req, res, next) => {
@@ -338,6 +339,13 @@ async function run() {
       const result = await offeredCollection.find().toArray();
       res.send(result);
     });
+
+    // get all reviews data
+    app.get("/reviews",async(req,res)=>{
+      const result=await reviewsCollection.find().toArray();
+      res.send(result)
+    })
+
 
     // Send a ping to confirm a successful connection
     // await client.db("admin").command({ ping: 1 });
